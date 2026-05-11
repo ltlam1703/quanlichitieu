@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý chi tiêu</title>
+
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f4f6f9;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .stat-value.total  { color: #1a1a2e; }
+  .stat-value.income { color: #1D9E75; }
+  .stat-value.expense{ color: #E24B4A; }
+
+  /* Form */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    margin-bottom: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  label {
+    font-size: 12px;
+    color: #666;
+  }
+
+  input, select {
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 14px;
+    outline: none;
+    background: #fafafa;
+    color: #1a1a2e;
+    transition: border-color .15s;
+  }
+
+  input:focus, select:focus {
+    border-color: #5b6af0;
+    background: #fff;
+  }
+
+  .btn-add {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: #1a1a2e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+
+  .btn-add:hover {
+    opacity: .85;
+  }
+
+  /* Filter */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    align-items: center;
+  }
+
+  .filter-row select,
+  .filter-row input[type=date] {
+    font-size: 13px;
+    padding: 6px 10px;
+    height: 34px;
+    border-radius: 7px;
+  }
+
+  /* Table */
+  .table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 10px 14px;
+    background: #f8f9fb;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+
+  td {
+    font-size: 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: #fafbff;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+
+  .badge-expense {
+    background: #fff0f0;
+    color: #c0392b;
+  }
+
+  .badge-income {
+    background: #e8faf3;
+    color: #0F6E56;
+  }
+
+  .amt-expense {
+    color: #E24B4A;
+    font-weight: 600;
+  }
+
+  .amt-income {
+    color: #1D9E75;
+    font-weight: 600;
+  }
+
+  .btn-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #bbb;
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 5px;
+  }
+
+  .btn-del:hover {
+    color: #E24B4A;
+    background: #fff0f0;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 3rem;
+    color: #aaa;
+    font-size: 14px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: #1a1a2e;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  @media (max-width: 600px) {
+    .stats {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+    <rect x="2" y="5" width="20" height="14" rx="2"/>
+    <path d="M2 10h20"/>
+  </svg>
+  <h1>Quản lý chi tiêu</h1>
+</header>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Giao dịch</div>
+      <div class="stat-value total" id="stat-count">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">Tổng chi</div>
+      <div class="stat-value expense" id="stat-expense">0 ₫</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">Tổng thu</div>
+      <div class="stat-value income" id="stat-income">0 ₫</div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="card">
+    <div class="card-title">+ Thêm giao dịch</div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Mô tả</label>
+        <input type="text" id="f-desc" placeholder="Ăn trưa, tiền điện...">
+      </div>
+
+      <div class="form-group">
+        <label>Số tiền (₫)</label>
+        <input type="number" id="f-amount" placeholder="50000" min="1">
+      </div>
+
+      <div class="form-group">
+        <label>Danh mục</label>
+        <select id="f-cat">
+          <option>Ăn uống</option>
+          <option>Di chuyển</option>
+          <option>Mua sắm</option>
+          <option>Hóa đơn</option>
+          <option>Giải trí</option>
+          <option>Thu nhập</option>
+          <option>Khác</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Ngày</label>
+        <input type="date" id="f-date">
+      </div>
+
+      <div class="form-group">
+        <label>Loại</label>
+        <select id="f-type">
+          <option value="expense">Chi tiêu</option>
+          <option value="income">Thu nhập</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button class="btn-add" onclick="addTx()">Thêm giao dịch</button>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-row">
+
+    <select id="fil-type" onchange="loadTx()">
+      <option value="">Tất cả loại</option>
+      <option value="expense">Chi tiêu</option>
+      <option value="income">Thu nhập</option>
+    </select>
+
+    <select id="fil-cat" onchange="loadTx()">
+      <option value="">Tất cả danh mục</option>
+      <option>Ăn uống</option>
+      <option>Di chuyển</option>
+      <option>Mua sắm</option>
+      <option>Hóa đơn</option>
+      <option>Giải trí</option>
+      <option>Thu nhập</option>
+      <option>Khác</option>
+    </select>
+
+    <input type="date" id="fil-date" onchange="loadTx()">
+
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+
+      <thead>
+        <tr>
+          <th style="width:90px">Ngày</th>
+          <th>Mô tả</th>
+          <th style="width:110px">Danh mục</th>
+          <th style="width:85px">Loại</th>
+          <th style="width:130px;text-align:right">Số tiền</th>
+          <th style="width:44px"></th>
+        </tr>
+      </thead>
+
+      <tbody id="tx-body"></tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+const API = '/api';
+
+const today = new Date().toISOString().slice(0,10);
+
+document.getElementById('f-date').value = today;
+document.getElementById('fil-date').value = today;
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('vi-VN') + ' ₫';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+
+  t.textContent = msg;
+  t.classList.add('show');
+
+  setTimeout(() => {
+    t.classList.remove('show');
+  }, 2500);
+}
+
+async function loadTx() {
+
+  const type = document.getElementById('fil-type').value;
+  const cat  = document.getElementById('fil-cat').value;
+  const date = document.getElementById('fil-date').value;
+
+  const params = new URLSearchParams();
+
+  if (type) params.set('type', type);
+  if (cat)  params.set('category', cat);
+  if (date) params.set('date', date);
+
+  try {
+
+    const res = await fetch(`${API}/transactions?${params}`);
+    const txs = await res.json();
+
+    let totalExp = 0;
+    let totalInc = 0;
+
+    txs.forEach(t => {
+      if (t.type === 'expense') {
+        totalExp += t.amount;
+      } else {
+        totalInc += t.amount;
+      }
+    });
+
+    document.getElementById('stat-count').textContent = txs.length;
+    document.getElementById('stat-expense').textContent = fmt(totalExp);
+    document.getElementById('stat-income').textContent = fmt(totalInc);
+
+    const tbody = document.getElementById('tx-body');
+
+    if (txs.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="6" class="empty">Chưa có giao dịch nào</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = txs.map(t => {
+
+      const d = new Date(t.tx_date);
+
+      const dateStr =
+        `${String(d.getDate()).padStart(2,'0')}/` +
+        `${String(d.getMonth()+1).padStart(2,'0')}/` +
+        `${d.getFullYear()}`;
+
+      return `
+        <tr>
+          <td>${dateStr}</td>
+
+          <td title="${t.description}">
+            ${t.description}
+          </td>
+
+          <td>${t.category}</td>
+
+          <td>
+            <span class="badge badge-${t.type}">
+              ${t.type === 'expense' ? 'Chi' : 'Thu'}
+            </span>
+          </td>
+
+          <td class="amt-${t.type}" style="text-align:right">
+            ${t.type === 'expense' ? '−' : '+'}${fmt(t.amount)}
+          </td>
+
+          <td>
+            <button class="btn-del"
+                    onclick="deleteTx('${t._id}')"
+                    title="Xóa">
+              ✕
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (e) {
+
+    document.getElementById('tx-body').innerHTML =
+      '<tr><td colspan="6" class="empty">⚠️ Không thể kết nối API</td></tr>';
+  }
+}
+
+async function addTx() {
+
+  const desc   = document.getElementById('f-desc').value.trim();
+  const amount = parseFloat(document.getElementById('f-amount').value);
+  const cat    = document.getElementById('f-cat').value;
+  const date   = document.getElementById('f-date').value;
+  const type   = document.getElementById('f-type').value;
+
+  if (!desc || !amount || amount < 1 || !date) {
+    showToast('⚠️ Vui lòng điền đầy đủ thông tin');
+    return;
+  }
+
+  try {
+
+    await fetch(`${API}/transactions`, {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json'
+      },
+
+      body: JSON.stringify({
+        description: desc,
+        amount,
+        category: cat,
+        type,
+        tx_date: date
+      }),
+    });
+
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-amount').value = '';
+
+    showToast('✅ Đã thêm giao dịch');
+
+    loadTx();
+
+  } catch (e) {
+
+    showToast('❌ Lỗi khi thêm giao dịch');
+  }
+}
+
+async function deleteTx(id) {
+
+  if (!confirm('Xóa giao dịch này?')) return;
+
+  try {
+
+    await fetch(`${API}/transactions/${id}`, {
+      method: 'DELETE'
+    });
+
+    showToast('🗑️ Đã xóa');
+
+    loadTx();
+
+  } catch (e) {
+
+    showToast('❌ Lỗi khi xóa');
+  }
+}
+
+loadTx();
+
+</script>
+
+</body>
+</html>
