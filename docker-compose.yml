@@ -22,6 +22,7 @@ services:
     environment:
       MONGO_URI: ${MONGO_URI}
       PORT: ${PORT}
+      FRONTEND_PORT: ${FRONTEND_PORT}
     ports:
       - "${API_PORT}:3000"
     depends_on:

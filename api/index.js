@@ -138,7 +138,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('================================');
   console.log('[INFO] API running on port ' + PORT);
-  console.log('[INFO] Frontend: http://localhost:8082');
+  console.log('[INFO] Frontend: http://localhost:' + process.env.FRONTEND_PORT);
   console.log('[INFO] API:      http://localhost:' + PORT + '/api/transactions');
   console.log('[INFO] Health:   http://localhost:' + PORT + '/health');
   console.log('================================');
