@@ -93,11 +93,34 @@ app.get('/api/transactions/summary', async (req, res) => {
   }
 });
 
+// ✅ GET /api/transactions/:id - Lấy chi tiết 1 giao dịch
+app.get('/api/transactions/:id', async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Không tìm thấy giao dịch' });
+    }
+    res.json(transaction);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/transactions
 app.post('/api/transactions', async (req, res) => {
   try {
     const tx = await Transaction.create(req.body);
     res.status(201).json(tx);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// PUT /api/transactions/:id
+app.put('/api/transactions/:id', async (req, res) => {
+  try {
+    const tx = await Transaction.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(tx);
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -113,23 +136,13 @@ app.delete('/api/transactions/:id', async (req, res) => {
   }
 });
 
-// PUT /api/transactions/:id
-app.put('/api/transactions/:id', async (req, res) => {
-  try {
-    const tx = await Transaction.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(tx);
-  } catch (e) {
-    res.status(400).json({ error: e.message });
-  }
-});
-
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
 // Export app cho test
 module.exports = app;
 
-// ── Chỉ chạy server khi file được gọi trực tiếp (không phải import từ test) ──
+// ── Chỉ chạy server khi file được gọi trực tiếp ──
 if (require.main === module) {
   const connectDB = async () => {
     const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:secret123@localhost:27017/expense_tracker?authSource=admin';
@@ -143,7 +156,6 @@ if (require.main === module) {
     app.listen(PORT, () => {
       console.log('================================');
       console.log('[INFO] API running on port ' + PORT);
-      console.log('[INFO] Frontend: http://localhost:' + process.env.FRONTEND_PORT);
       console.log('[INFO] API:      http://localhost:' + PORT + '/api/transactions');
       console.log('[INFO] Health:   http://localhost:' + PORT + '/health');
       console.log('================================');

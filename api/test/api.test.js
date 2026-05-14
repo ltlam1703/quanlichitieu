@@ -49,22 +49,6 @@ describeDB('Transactions API', () => {
     expect(Array.isArray(response.body)).toBe(true);
   });
 
-  test('POST /api/transactions tạo giao dịch mới', async () => {
-    const newTx = {
-      description: 'Test transaction',
-      amount: 1000,
-      category: 'Test',
-      type: 'expense',
-      tx_date: '2025-05-11'
-    };
-    const response = await request(app)
-      .post('/api/transactions')
-      .send(newTx);
-    expect(response.status).toBe(201);
-    expect(response.body.description).toBe('Test transaction');
-    createdId = response.body._id;
-  });
-
   test('POST /api/transactions tạo giao dịch mới và lưu ID', async () => {
     const newTx = {
       description: 'Test transaction',
@@ -86,12 +70,21 @@ describeDB('Transactions API', () => {
     expect(createdId).toBeDefined();
   });
 
+  test('GET /api/transactions/:id lấy giao dịch cụ thể', async () => {
+    expect(createdId).toBeDefined();
+    const response = await request(app).get(`/api/transactions/${createdId}`);
+    console.log('🔍 GET response status:', response.status);
+    console.log('🔍 GET response body:', response.body);
+    expect(response.status).toBe(200);
+    const returnedId = response.body._id || response.body.id;
+    expect(returnedId).toBe(createdId);
+  });
+
   test('DELETE /api/transactions/:id xóa giao dịch', async () => {
-    if (createdId) {
-      const response = await request(app).delete(`/api/transactions/${createdId}`);
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe('Đã xóa');
-    }
+    expect(createdId).toBeDefined();
+    const response = await request(app).delete(`/api/transactions/${createdId}`);
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Đã xóa');
   });
 });
 
