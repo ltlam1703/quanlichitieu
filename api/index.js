@@ -6,11 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ── Kết nối MongoDB ──────────────────────────────────────────
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => { console.error('❌ MongoDB error:', err); process.exit(1); });
-
 // ── Schema / Model ───────────────────────────────────────────
 const txSchema = new mongoose.Schema({
   description: { type: String, required: true, trim: true },
@@ -26,7 +21,6 @@ const Transaction = mongoose.model('Transaction', txSchema);
 // ── Routes ───────────────────────────────────────────────────
 
 // GET /api/transactions
-// params: type, category, all, date, week, month, year
 app.get('/api/transactions', async (req, res) => {
   try {
     const { type, category, date, week, month, year, all } = req.query;
@@ -36,14 +30,12 @@ app.get('/api/transactions', async (req, res) => {
 
     if (all !== 'true') {
       if (date) {
-        // Lọc 1 ngày cụ thể
         const d = new Date(date);
         filter.tx_date = {
           $gte: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())),
           $lt:  new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)),
         };
       } else if (week) {
-        // week = YYYY-MM-DD, tính thứ 2 -> chủ nhật của tuần đó
         const d = new Date(week);
         const day = d.getDay();
         const diffToMon = (day === 0 ? -6 : 1 - day);
@@ -69,7 +61,7 @@ app.get('/api/transactions', async (req, res) => {
           $lt:  new Date(Date.UTC(y, m, 1)),
         };
       }
-    }  // ← đóng if(all !== 'true') đúng chỗ
+    }
 
     const txs = await Transaction.find(filter).sort({ tx_date: -1, created_at: -1 });
     res.json(txs);
@@ -134,12 +126,30 @@ app.put('/api/transactions/:id', async (req, res) => {
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('================================');
-  console.log('[INFO] API running on port ' + PORT);
-  console.log('[INFO] Frontend: http://localhost:' + process.env.FRONTEND_PORT);
-  console.log('[INFO] API:      http://localhost:' + PORT + '/api/transactions');
-  console.log('[INFO] Health:   http://localhost:' + PORT + '/health');
-  console.log('================================');
-});
+// Export app cho test
+module.exports = app;
+
+// ── Chỉ chạy server khi file được gọi trực tiếp (không phải import từ test) ──
+if (require.main === module) {
+  const connectDB = async () => {
+    const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:secret123@localhost:27017/expense_tracker?authSource=admin';
+    await mongoose.connect(MONGO_URI);
+    console.log('✅ MongoDB connected');
+  };
+
+  const PORT = process.env.PORT || 3000;
+  
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log('================================');
+      console.log('[INFO] API running on port ' + PORT);
+      console.log('[INFO] Frontend: http://localhost:' + process.env.FRONTEND_PORT);
+      console.log('[INFO] API:      http://localhost:' + PORT + '/api/transactions');
+      console.log('[INFO] Health:   http://localhost:' + PORT + '/health');
+      console.log('================================');
+    });
+  }).catch(err => {
+    console.error('❌ MongoDB error:', err);
+    process.exit(1);
+  });
+}

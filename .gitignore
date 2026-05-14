@@ -5,6 +5,9 @@
 node_modules/
 npm-debug.log
 
+# Coverage (thêm dòng này)
+coverage/
+
 # OS
 .DS_Store
 Thumbs.db

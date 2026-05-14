@@ -20,11 +20,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: api/package-lock.json
+          cache-dependency-path: api/package.json
 
       - name: Install dependencies
         working-directory: api
-        run: npm install
+        run: npm ci
 
       - name: Run lint
         working-directory: api
@@ -52,7 +52,7 @@ jobs:
           --health-retries 5
 
     env:
-      MONGO_URI: mongodb://admin:secret123@localhost:27017/expense_tracker_test?authSource=admin
+      MONGO_URI: mongodb://admin:secret123@localhost:27018/expense_tracker_test?authSource=admin
       PORT: 3000
 
     steps:
@@ -64,11 +64,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: api/package-lock.json
+          cache-dependency-path: api/package.json
 
       - name: Install dependencies
         working-directory: api
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         working-directory: api
